@@ -132,14 +132,9 @@ class Chef
           user "root"
         end
 
-        cmd = Mixlib::ShellOut.new("git", "config", "core.autocrlf", "false", user: new_resource.user, environment: nil, cwd: "/usr/local/Homebrew")
-        cmd.run_command
-
-        cmd = Mixlib::ShellOut.new("ln", "-sf", "/usr/local/Homebrew/bin/brew", "/usr/local/bin/brew", user: new_resource.user, environment: nil, cwd: "/usr/local/Homebrew")
-        cmd.run_command
-
-        cmd = Mixlib::ShellOut.new("/usr/local/bin/brew", "update", "--force", user: new_resource.user, environment: nil, cwd: "/usr/local/Homebrew")
-        cmd.run_command
+        shell_out("git", "config", "core.autocrlf", "false", user: new_resource.user, environment: nil, cwd: "/usr/local/Homebrew")
+        shell_out("ln", "-sf", "/usr/local/Homebrew/bin/brew", "/usr/local/bin/brew", user: new_resource.user, environment: nil, cwd: "/usr/local/Homebrew")
+        shell_out("/usr/local/bin/brew", "update", "--force", user: new_resource.user, environment: nil, cwd: "/usr/local/Homebrew")
 
         local_shell = shell_out("echo $SHELL")
         if local_shell.stdout.match(/zsh/)
