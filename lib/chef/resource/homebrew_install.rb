@@ -50,7 +50,7 @@ class Chef
       property :xcode_tools_pkg_name, String,
         description: "The name of the pkg inside the dmg located at the xcode_tools_url"
 
-      property :brew_url, String,
+      property :brew_source_url, String,
         description: "A url pointing to a Homebrew installer",
         default: "https://codeload.github.com/Homebrew/brew/zip/master"
 
@@ -113,7 +113,7 @@ class Chef
           cwd "/usr/local/Homebrew"
           code <<-CODEBLOCK
             git init -q
-            curl #{new_resource.brew_url} -o brew-master.zip
+            curl #{new_resource.brew_source_url} -o brew-master.zip
             unzip brew-master.zip -d /usr/local/Homebrew
             rm /usr/local/Homebrew/brew-master.zip
           CODEBLOCK
