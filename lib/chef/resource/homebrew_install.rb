@@ -33,26 +33,26 @@ class Chef
         action :install
       end
       ```
-      **Install Homebrew using a local source to download Command Line Tools for Xcode from**:
+      **Install Homebrew using a customer-managed source to download Command Line Tools for Xcode from**:
       ```ruby
       homebrew_install 'Install Homebrew and xcode command line tools if necessary' do
-        tools_url 'https://somewhere.something.com/downloads/command_line_tools.dmg'
-        tools_pkg_name 'Command Line Tools.pkg'
+        xcode_tools_url 'https://somewhere.something.com/downloads/command_line_tools.dmg'
+        xcode_tools_pkg_name 'Command Line Tools.pkg'
         user 'someuser'
         action :install
       end
       ```
       DOC
 
-      property :tools_url, String,
-        description: "A url pointing to a local source for the Command Line Tools for Xcode dmg"
+      property :xcode_tools_url, String,
+        description: "A url pointing to a 'Command Line Tools for Xcode' dmg file"
 
-      property :tools_pkg_name, String,
-        description: "The name of the pkg inside the dmg located at the tools url"
+      property :xcode_tools_pkg_name, String,
+        description: "The name of the pkg inside the dmg located at the xcode_tools_url"
 
-      property :brew_source, String,
+      property :brew_url, String,
         description: "A url pointing to a Homebrew installer",
-        default: "https://github.com/Homebrew/brew/tarball/master"
+        default: "https://codeload.github.com/Homebrew/brew/zip/master"
 
       property :user, String,
         description: "The user to install Homebrew as. Note: Homebrew cannot be installed as root.",
@@ -62,7 +62,11 @@ class Chef
         # Avoid all the work in the below resources if homebrew is already installed
         return if ::File.exist?("/usr/local/bin/brew")
 
-        BREW_REPO = "https://codeload.github.com/Homebrew/brew/zip/master".freeze
+        #check if 'user' is root and raise an exception if so
+        if Etc.getpwnam(new_resource.user).uid == 0
+            msg "You are attempting to run Brew as Root. This is not permitted. Please run this as a standard user with admin rights"
+            raise Chef::Exceptions::InsufficientPermissions, msg
+
         USER_HOME = Dir.home(new_resource.user).freeze
         HOMEBREW_CACHE = "#{USER_HOME}/Library/Caches/Homebrew".freeze
 
@@ -93,9 +97,9 @@ class Chef
           end
         end
 
-        if new_resource.tools_url
-          dmg_package new_resource.tools_pkg_name do
-            source new_resource.tools_url
+        if new_resource.xcode_tools_url
+          dmg_package new_resource.xcode_tools_pkg_name do
+            source new_resource.xcode_tools_url
             type "pkg"
           end
         else
@@ -109,8 +113,9 @@ class Chef
           cwd "/usr/local/Homebrew"
           code <<-CODEBLOCK
             git init -q
-            curl #{BREW_REPO} -o brew-master.zip
+            curl #{new_resource.brew_url} -o brew-master.zip
             unzip brew-master.zip -d /usr/local/Homebrew
+            rm /usr/local/Homebrew/brew-master.zip
           CODEBLOCK
           user new_resource.user
         end
@@ -126,20 +131,20 @@ class Chef
           user "root"
         end
 
-        cmd = Mixlib::ShellOut.new("git", "config", "core.autocrlf", "false", :user => new_resource.user, :environment => nil, :cwd => "/usr/local/Homebrew")
+        cmd = Mixlib::ShellOut.new("git", "config", "core.autocrlf", "false", user: new_resource.user, environment: nil, cwd: "/usr/local/Homebrew")
         cmd.run_command
 
-        cmd = Mixlib::ShellOut.new("ln", "-sf", "/usr/local/Homebrew/bin/brew", "/usr/local/bin/brew", :user => new_resource.user, :environment => nil, :cwd => "/usr/local/Homebrew")
+        cmd = Mixlib::ShellOut.new("ln", "-sf", "/usr/local/Homebrew/bin/brew", "/usr/local/bin/brew", user: new_resource.user, environment: nil, cwd: "/usr/local/Homebrew")
         cmd.run_command
 
-        cmd = Mixlib::ShellOut.new("/usr/local/bin/brew", "update", "--force", :user => new_resource.user, :environment => nil, :cwd => "/usr/local/Homebrew")
+        cmd = Mixlib::ShellOut.new("/usr/local/bin/brew", "update", "--force", user: new_resource.user, environment: nil, cwd: "/usr/local/Homebrew")
         cmd.run_command
 
         local_shell = shell_out("echo $SHELL")
         if local_shell.stdout.match(/zsh/)
-          shell_out("export PATH="/usr/local/bin:$PATH" >> ~/.zshrc")
+          shell_out('export PATH="/usr/local/bin:$PATH" >> ~/.zshrc')
         else
-          shell_out("export PATH="/usr/local/bin:$PATH" >> ~/.bash_profile")
+          shell_out('export PATH="/usr/local/bin:$PATH" >> ~/.bash_profile')
         end
       end
     end
