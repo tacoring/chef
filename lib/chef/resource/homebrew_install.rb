@@ -62,10 +62,10 @@ class Chef
         # Avoid all the work in the below resources if homebrew is already installed
         return if ::File.exist?("/usr/local/bin/brew")
 
-        #check if 'user' is root and raise an exception if so
+        # check if 'user' is root and raise an exception if so
         if Etc.getpwnam(new_resource.user).uid == 0
-            msg = "You are attempting to install Homebrew as Root. This is not permitted by Homebrew. Please run this as a standard user with admin rights"
-            raise Chef::Exceptions::InsufficientPermissions, msg
+          msg = "You are attempting to install Homebrew as Root. This is not permitted by Homebrew. Please run this as a standard user with admin rights"
+          raise Chef::Exceptions::InsufficientPermissions, msg
         end
 
         USER_HOME = Dir.home(new_resource.user).freeze
