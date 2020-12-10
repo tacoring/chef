@@ -64,8 +64,9 @@ class Chef
 
         #check if 'user' is root and raise an exception if so
         if Etc.getpwnam(new_resource.user).uid == 0
-            msg "You are attempting to run Brew as Root. This is not permitted. Please run this as a standard user with admin rights"
+            msg = "You are attempting to install Homebrew as Root. This is not permitted by Homebrew. Please run this as a standard user with admin rights"
             raise Chef::Exceptions::InsufficientPermissions, msg
+        end
 
         USER_HOME = Dir.home(new_resource.user).freeze
         HOMEBREW_CACHE = "#{USER_HOME}/Library/Caches/Homebrew".freeze

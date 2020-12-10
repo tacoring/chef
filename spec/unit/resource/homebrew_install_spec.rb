@@ -17,7 +17,7 @@
 
 require "spec_helper"
 
-describe Chef::Resource::HomebrewCask do
+describe Chef::Resource::HomebrewInstall do
 
   let(:resource) { Chef::Resource::HomebrewInstall.new("fakey_fakerton") }
 
