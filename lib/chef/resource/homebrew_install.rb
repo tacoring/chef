@@ -60,23 +60,23 @@ class Chef
 
       action :install do
         # Avoid all the work in the below resources if homebrew is already installed
-        return if ::File.exist?('/usr/local/bin/brew')
+        return if ::File.exist?("/usr/local/bin/brew")
 
-        BREW_REPO = 'https://codeload.github.com/Homebrew/brew/zip/master'.freeze
+        BREW_REPO = "https://codeload.github.com/Homebrew/brew/zip/master".freeze
         USER_HOME = Dir.home(new_resource.user).freeze
         HOMEBREW_CACHE = "#{USER_HOME}/Library/Caches/Homebrew".freeze
 
         # Creating the basic directory structure needed for Homebrew
-        directories = ['bin', 'etc', 'include', 'lib', 'sbin', 'share', 'var', 'opt',
-                        'share/zsh', 'share/zsh/site-functions',
-                        'var/homebrew', 'var/homebrew/linked',
-                        'Cellar', 'Caskroom', 'Homebrew', 'Frameworks'
+        directories = ["bin", "etc", "include", "lib", "sbin", "share", "var", "opt",
+                        "share/zsh", "share/zsh/site-functions",
+                        "var/homebrew", "var/homebrew/linked",
+                        "Cellar", "Caskroom", "Homebrew", "Frameworks"
                       ].freeze
         directories.each do |dir|
           directory "/usr/local/#{dir}" do
-            mode '0755'
+            mode "0755"
             owner new_resource.user
-            group 'admin'
+            group "admin"
             action :create
           end
         end
@@ -86,9 +86,9 @@ class Chef
         ]
         user_directories.each do |dir|
           directory "#{dir}" do
-            mode '0755'
+            mode "0755"
             owner new_resource.user
-            group 'admin'
+            group "admin"
             action :create
           end
         end
@@ -96,16 +96,16 @@ class Chef
         if new_resource.tools_url
           dmg_package new_resource.tools_pkg_name do
             source new_resource.tools_url
-            type 'pkg'
+            type "pkg"
           end
         else
-          build_essential 'install Command Line Tools for Xcode' do
+          build_essential "install Command Line Tools for Xcode" do
             action :upgrade
           end
         end
 
-        script 'Download and unpack Homebrew' do
-          interpreter 'bash'
+        script "Download and unpack Homebrew" do
+          interpreter "bash"
           cwd "/usr/local/Homebrew"
           code <<-CODEBLOCK
             git init -q
@@ -115,15 +115,15 @@ class Chef
           user new_resource.user
         end
 
-        script 'move files to their correct locations' do
-          interpreter 'bash'
+        script "move files to their correct locations" do
+          interpreter "bash"
           cwd "/usr/local/Homebrew"
           code <<-CODEBLOCK
             mv /usr/local/Homebrew/brew-master/* /usr/local/Homebrew/
             mv /usr/local/Homebrew/brew-master/.* /usr/local/Homebrew/
             rmdir /usr/local/Homebrew/brew-master/
           CODEBLOCK
-          user 'root'
+          user "root"
         end
 
         cmd = Mixlib::ShellOut.new("git", "config", "core.autocrlf", "false", :user => new_resource.user, :environment => nil, :cwd => "/usr/local/Homebrew")
@@ -135,11 +135,11 @@ class Chef
         cmd = Mixlib::ShellOut.new("/usr/local/bin/brew", "update", "--force", :user => new_resource.user, :environment => nil, :cwd => "/usr/local/Homebrew")
         cmd.run_command
 
-        local_shell = shell_out('echo $SHELL')
+        local_shell = shell_out("echo $SHELL")
         if local_shell.stdout.match(/zsh/)
-          shell_out('export PATH="/usr/local/bin:$PATH" >> ~/.zshrc')
+          shell_out("export PATH="/usr/local/bin:$PATH" >> ~/.zshrc")
         else
-          shell_out('export PATH="/usr/local/bin:$PATH" >> ~/.bash_profile')
+          shell_out("export PATH="/usr/local/bin:$PATH" >> ~/.bash_profile")
         end
       end
     end
