@@ -68,8 +68,7 @@ class Chef
           raise Chef::Exceptions::InsufficientPermissions, msg
         end
 
-        USER_HOME = Dir.home(new_resource.user).freeze
-        HOMEBREW_CACHE = "#{USER_HOME}/Library/Caches/Homebrew".freeze
+        user_home = Dir.home(new_resource.user).freeze
 
         # Creating the basic directory structure needed for Homebrew
         directories = ["bin", "etc", "include", "lib", "sbin", "share", "var", "opt",
@@ -86,8 +85,8 @@ class Chef
           end
         end
 
-        user_directories = ["#{USER_HOME}", "#{USER_HOME}/Library",
-                            "#{USER_HOME}/Library/Caches", "#{USER_HOME}/Library/Caches/Homebrew"
+        user_directories = ["#{user_home}", "#{user_home}/Library",
+                            "#{user_home}/Library/Caches", "#{user_home}/Library/Caches/Homebrew"
         ]
         user_directories.each do |dir|
           directory "#{dir}" do
