@@ -104,8 +104,17 @@ class Chef
           end
         else
           build_essential "install Command Line Tools for Xcode" do
-            action :upgrade
+            action :install
           end
+        end
+
+        zip_file = Chef::Config[:file_cache_path] + "/brew_master.zip"
+        remote_file zip_file do
+          source new_resource.brew_source_url
+          owner new_resource.user
+          group 'admin'
+          mode '0755'
+          action :create
         end
 
         script "Download and unpack Homebrew" do
@@ -113,9 +122,7 @@ class Chef
           cwd "/usr/local/Homebrew"
           code <<-CODEBLOCK
             git init -q
-            curl #{new_resource.brew_source_url} -o brew-master.zip
-            unzip brew-master.zip -d /usr/local/Homebrew
-            rm /usr/local/Homebrew/brew-master.zip
+            unzip #{zip_file} -d /usr/local/Homebrew
           CODEBLOCK
           user new_resource.user
         end
@@ -131,6 +138,7 @@ class Chef
           user "root"
         end
 
+        shell_out("rm", "#{zip_file}", user: "root", environment: nil, cwd: "/usr/local/Homebrew")
         shell_out("git", "config", "core.autocrlf", "false", user: new_resource.user, environment: nil, cwd: "/usr/local/Homebrew")
         shell_out("ln", "-sf", "/usr/local/Homebrew/bin/brew", "/usr/local/bin/brew", user: new_resource.user, environment: nil, cwd: "/usr/local/Homebrew")
         shell_out("/usr/local/bin/brew", "update", "--force", user: new_resource.user, environment: nil, cwd: "/usr/local/Homebrew")
