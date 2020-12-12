@@ -87,7 +87,7 @@ class Chef
 
         user_directories = ["#{user_home}", "#{user_home}/Library",
                             "#{user_home}/Library/Caches", "#{user_home}/Library/Caches/Homebrew"
-        ]
+        ].freeze
         user_directories.each do |dir|
           directory "#{dir}" do
             mode "0755"
