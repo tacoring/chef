@@ -112,8 +112,8 @@ class Chef
         remote_file zip_file do
           source new_resource.brew_source_url
           owner new_resource.user
-          group 'admin'
-          mode '0755'
+          group "admin"
+          mode "0755"
           action :create
         end
 
