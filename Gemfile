@@ -24,6 +24,9 @@ gem "cheffish", ">= 14"
 
 gem "chef-telemetry", ">=1.0.8" # 1.0.8 removes the http dep
 
+# yolo master for a bit until they release a ruby-3.0 compatible ffi
+gem "ffi", git: "https://github.com/ffi/ffi", branch: "master", submodules: true
+
 group(:omnibus_package) do
   gem "appbundler"
   gem "rb-readline"
@@ -45,7 +48,7 @@ end
 
 # Everything except AIX and Windows
 group(:ruby_shadow) do
-  gem "ruby-shadow", platforms: :ruby
+  gem "ruby-shadow", git: "https://github.com/chef/ruby-shadow", branch: "lcg/ruby-3.0", platforms: :ruby
 end
 
 group(:development, :test) do
